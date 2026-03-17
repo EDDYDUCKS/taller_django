@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor de Pacientes API</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .paciente-card {
+            background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid #4CAF50;
+        }
+        h1 { color: #333; }
+        .btn { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <h1>Lista de Pacientes 🏥</h1>
+    <button class="btn" onclick="obtenerPacientes()">Recargar Datos</button>
+    <br><br>
+    
+    <div id="contenedor-pacientes">
+        </div>
+
+    <script>
+        function obtenerPacientes() {
+            const contenedor = document.getElementById('contenedor-pacientes');
+            contenedor.innerHTML = '<p>Cargando pacientes desde Django...</p>';
+
+            // Hacemos la petición GET a tu API
+            fetch('http://localhost:8000/api/pacientes/')
+                .then(respuesta => respuesta.json())
+                .then(datos => {
+                    contenedor.innerHTML = ''; // Limpiamos el mensaje de carga
+                    
+                    if(datos.length === 0) {
+                        contenedor.innerHTML = '<p>No hay pacientes registrados aún.</p>';
+                        return;
+                    }
+
+                    // Iteramos sobre el JSON que nos devolvió tu Serializador
+                    datos.forEach(paciente => {
+                        const tarjeta = document.createElement('div');
+                        tarjeta.className = 'paciente-card';
+                        tarjeta.innerHTML = `
+                            <h3>${paciente.nombre} ${paciente.apellidos}</h3>
+                            <p><strong>Teléfono:</strong> ${paciente.telefono}</p>
+                            <p><small>Registrado el: ${new Date(paciente.fecha_registro).toLocaleString()}</small></p>
+                            <p><small>ID en BD: ${paciente.id}</small></p>
+                        `;
+                        contenedor.appendChild(tarjeta);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    contenedor.innerHTML = '<p style="color:red;">Error al conectar con la API. ¿Está encendido el servidor Django?</p>';
+                });
+        }
+
+        // Cargar los datos automáticamente al abrir la página
+        obtenerPacientes();
+    </script>
+</body>
+</html>
